@@ -1,0 +1,38 @@
+{
+  "auth": {
+    "enabled": true,
+    "claims": {
+      "role": "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+    }
+  },
+  "http": {
+    "name": "cotore",
+    "resiliency": {
+      "retries": 3,
+      "retryInterval": "00.00:00:05",
+      "exponential": false
+    }
+  },
+  "useForwardedHeaders": true,
+  "passQueryString": true,
+  "forwardRequestHeaders": true,
+  "forwardResponseHeaders": true,
+  "useLocalUrl": true,
+  "loadBalancer": {
+    "enabled": false,
+    "url": "localhost:9999"
+  },
+  "modules": {
+    "home": {
+      "routes": [
+        {
+          "upstream": "/",
+          "method": "GET",
+          "use": "return_value",
+          "returnValue": "Welcome to Taskly API!",
+          "auth": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>Cotore</Description>
+		<Authors>Robert Głodek</Authors>
+		<AssemblyName>Cotore</AssemblyName>
+		<Title>Cotore</Title>
+		<PackageId>Cotore</PackageId>
+		<PackageTags>Cotore</PackageTags>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NJsonSchema" Version="11.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="3.1.0" />
+		<PackageReference Include="Figgle" Version="0.5.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>

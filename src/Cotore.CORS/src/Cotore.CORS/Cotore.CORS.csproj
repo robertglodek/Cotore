@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>Cotore.CORS</Description>
+		<Authors>Robert Głodek</Authors>
+		<AssemblyName>Cotore.CORS</AssemblyName>
+		<Title>Cotore.CORS</Title>
+		<PackageId>Cotore.CORS</PackageId>
+		<PackageTags>Cotore.CORS</PackageTags>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Cotore\src\Cotore\Cotore.csproj" />
+	</ItemGroup>
+
+</Project>
