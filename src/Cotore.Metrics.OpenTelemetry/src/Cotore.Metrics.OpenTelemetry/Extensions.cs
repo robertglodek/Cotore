@@ -1,5 +1,4 @@
-﻿using Cotore.Exceptions;
-using Cotore.Helpers;
+﻿using Cotore.Metrics.OpenTelemetry.Exceptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,22 +27,22 @@ public static class Extensions
         }
 
         builder.Services.AddOpenTelemetry()
-            .WithMetrics(builder =>
+            .WithMetrics(configure =>
             {
-                builder.AddAspNetCoreInstrumentation();
-                builder.AddHttpClientInstrumentation();
-                builder.AddRuntimeInstrumentation();
-                ConfigureExporter(builder, sectionName, options);
+                configure.AddAspNetCoreInstrumentation();
+                configure.AddHttpClientInstrumentation();
+                configure.AddRuntimeInstrumentation();
+                ConfigureExporter(configure, options);
             });
 
         return builder;
     }
 
-    private static void ConfigureExporter(MeterProviderBuilder builder, string sectionName, MetricsOptions options)
+    private static void ConfigureExporter(MeterProviderBuilder builder, MetricsOptions options)
     {
         if(string.IsNullOrEmpty(options.Exporter))
         {
-            throw new ConfigurationException("Metrics explorer cannot be empty.", PropertyPathHelper.GetOptionsPropertyPath<MetricsOptions>(sectionName, n => n.Exporter));
+            throw new MetricsConfigurationException("Metrics explorer cannot be empty.");
         }
 
         switch (options.Exporter.ToLowerInvariant())
@@ -56,8 +55,7 @@ public static class Extensions
                     prometheus.ScrapeEndpointPath = string.IsNullOrWhiteSpace(options.Endpoint) ? prometheus.ScrapeEndpointPath : options.Endpoint);
                 break;
             default:
-                throw new ConfigurationException($"Metrics explorer '{options.Exporter}' not configured.",
-                    PropertyPathHelper.GetOptionsPropertyPath<MetricsOptions>(sectionName, n => n.Exporter));
+                throw new MetricsConfigurationException($"Metrics explorer '{options.Exporter}' not configured.");
         }
     }
 

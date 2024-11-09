@@ -4,5 +4,5 @@ namespace Cotore.Routing;
 
 internal interface IUpstreamBuilder
 {
-    string Build(ModuleOptions module, RouteOptions route);
+    string Build(ModuleOptions module, Configuration.RouteOptions route);
 }

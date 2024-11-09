@@ -1,7 +1,3 @@
-using Cotore.Serialization;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-
 namespace Cotore.Requests;
 
 internal sealed class PayloadBuilder : IPayloadBuilder
@@ -14,10 +10,8 @@ internal sealed class PayloadBuilder : IPayloadBuilder
             return content;
         }
 
-        using (var reader = new StreamReader(request.Body))
-        {
-            content = await reader.ReadToEndAsync();
-        }
+        using var reader = new StreamReader(request.Body);
+        content = await reader.ReadToEndAsync();
 
         return content;
     }

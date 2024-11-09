@@ -1,15 +1,14 @@
 using Cotore.Serialization;
 using Cotore.WebApi;
+using JetBrains.Annotations;
 using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Cotore.Swagger.Filters;
 
-internal sealed class WebApiDocumentFilter(IJsonSerializer jsonSerializer, WebApiEndpointDefinitions definitions) : IDocumentFilter
+[UsedImplicitly]
+internal sealed class WebApiDocumentFilter(IJsonSerializer jsonSerializer, WebApiEndpointDefinitions definitions)
+    : IDocumentFilter
 {
-    private readonly IJsonSerializer _jsonSerializer = jsonSerializer;
-    private readonly WebApiEndpointDefinitions _definitions = definitions;
     private const string InBody = "body";
     private const string InQuery = "query";
     private const string InPath = "path";
@@ -18,7 +17,7 @@ internal sealed class WebApiDocumentFilter(IJsonSerializer jsonSerializer, WebAp
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        foreach (var definition in _definitions)
+        foreach (var definition in definitions)
         {
             var pathItem = new OpenApiPathItem();
             var (operation, type) = GetOperation(pathItem, definition.Method);
@@ -59,12 +58,12 @@ internal sealed class WebApiDocumentFilter(IJsonSerializer jsonSerializer, WebAp
                 {
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
-                        [System.Net.Mime.MediaTypeNames.Application.Json] = new OpenApiMediaType
+                        [System.Net.Mime.MediaTypeNames.Application.Json] = new()
                         {
                             Schema = new OpenApiSchema
                             {
                                 Type = parameter.Type,
-                                Example = new OpenApiString(_jsonSerializer.Serialize(parameter.Example))
+                                Example = new OpenApiString(jsonSerializer.Serialize(parameter.Example))
                             }
                         }
                     }
@@ -74,7 +73,7 @@ internal sealed class WebApiDocumentFilter(IJsonSerializer jsonSerializer, WebAp
             {
                 var exampleValue = parameter.Example is string || parameter.Example is ValueType
                     ? new OpenApiString(parameter.Example.ToString())
-                    : new OpenApiString(_jsonSerializer.Serialize(parameter.Example));
+                    : new OpenApiString(jsonSerializer.Serialize(parameter.Example));
 
                 operation.Parameters.Add(new OpenApiParameter
                 {
@@ -104,12 +103,12 @@ internal sealed class WebApiDocumentFilter(IJsonSerializer jsonSerializer, WebAp
             {
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
-                    [BodyContentKey] = new OpenApiMediaType
+                    [BodyContentKey] = new()
                     {
                         Schema = new OpenApiSchema
                         {
                             Type = response.Type,
-                            Example = new OpenApiString(_jsonSerializer.Serialize(response.Example))
+                            Example = new OpenApiString(jsonSerializer.Serialize(response.Example))
                         }
                     }
                 }

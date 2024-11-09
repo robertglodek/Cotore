@@ -12,13 +12,13 @@ using Elastic.Ingest.Elasticsearch.DataStreams;
 using Elastic.Ingest.Elasticsearch;
 using Elastic.Transport;
 using Cotore.Options;
-using Cotore.Exceptions;
+using Cotore.Logging.Serilog.Exceptions;
 
 namespace Cotore.Logging.Serilog;
 
 public static class Extensions
 {
-    internal static LoggingLevelSwitch LoggingLevelSwitch = new();
+    internal static readonly LoggingLevelSwitch LoggingLevelSwitch = new();
     private const string DefaultSectionName = "logger";
     private const string DefaultAppSectionName = "app";
     private const string ConsoleOutputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message}{NewLine}{Exception}";
@@ -97,7 +97,7 @@ public static class Extensions
         var consoleOptions = options.Console ?? new LoggerOptions.ConsoleOptions();
         var fileOptions = options.File ?? new LoggerOptions.FileOptions();
         var seqOptions = options.Seq ?? new LoggerOptions.SeqOptions();
-        var mongoOptions = options.Mongo ?? new LoggerOptions.MongoDBOptions();
+        var mongoOptions = options.Mongo ?? new LoggerOptions.MongoDbOptions();
         var elkOptions = options.Elk ?? new LoggerOptions.ElkOptions();
 
         if (consoleOptions.Enabled)
@@ -140,20 +140,18 @@ public static class Extensions
                 opts.BootstrapMethod = BootstrapMethod.Failure;
             }, transport =>
             {
-                if (elkOptions.BasicAuthEnabled)
+                if (!elkOptions.BasicAuthEnabled) return;
+                if (string.IsNullOrEmpty(elkOptions.Username))
                 {
-                    if (string.IsNullOrEmpty(elkOptions.Username))
-                    {
-                        throw new ConfigurationException("When Basic Authentication enabled, username must not be empty.", nameof(elkOptions.Username));
-                    }
-
-                    if (string.IsNullOrEmpty(elkOptions.Password))
-                    {
-                        throw new ConfigurationException("When Basic Authentication enabled, password must not be empty.", nameof(elkOptions.Password));
-                    }
-
-                    transport.Authentication(new BasicAuthentication(elkOptions.Username, elkOptions.Password));
+                    throw new LoggingConfigurationExceptions("When Basic Authentication enabled, username must not be empty.");
                 }
+
+                if (string.IsNullOrEmpty(elkOptions.Password))
+                {
+                    throw new LoggingConfigurationExceptions("When Basic Authentication enabled, password must not be empty.");
+                }
+
+                transport.Authentication(new BasicAuthentication(elkOptions.Username, elkOptions.Password));
             });
         }
     }

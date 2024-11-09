@@ -2,51 +2,51 @@
 
 public sealed class LoggerOptions
 {
-    public string? Level { get; set; }
-    public ConsoleOptions? Console { get; set; }
-    public FileOptions? File { get; set; }
-    public SeqOptions? Seq { get; set; }
-    public MongoDBOptions? Mongo { get; set; }
-    public ElkOptions? Elk { get; set; }
-    public IDictionary<string, string>? MinimumLevelOverrides { get; set; }
-    public IEnumerable<string>? ExcludePaths { get; set; }
-    public IEnumerable<string>? ExcludeProperties { get; set; }
-    public IDictionary<string, object>? Tags { get; set; }
+    public string? Level { get; init; }
+    public ConsoleOptions? Console { get; init; }
+    public FileOptions? File { get; init; }
+    public SeqOptions? Seq { get; init; }
+    public MongoDbOptions? Mongo { get; init; }
+    public ElkOptions? Elk { get; init; }
+    public IDictionary<string, string>? MinimumLevelOverrides { get; init; }
+    public IEnumerable<string>? ExcludePaths { get; init; }
+    public IEnumerable<string>? ExcludeProperties { get; init; }
+    public IDictionary<string, object>? Tags { get; init; }
 
     public sealed class ConsoleOptions
     {
-        public bool Enabled { get; set; }
-        public string? Template { get; set; }
+        public bool Enabled { get; init; }
+        public string? Template { get; init; }
     }
 
     public sealed class FileOptions
     {
-        public bool Enabled { get; set; }
-        public string Path { get; set; } = null!;
-        public string? Interval { get; set; }
-        public string? Template { get; set; }
+        public bool Enabled { get; init; }
+        public string Path { get; init; } = null!;
+        public string? Interval { get; init; }
+        public string? Template { get; init; }
     }
 
-    public sealed class MongoDBOptions
+    public sealed class MongoDbOptions
     {
-        public bool Enabled { get; set; }
-        public string Url { get; set; } = null!;
-        public string Collection { get; set; } = null!;
+        public bool Enabled { get; init; }
+        public string Url { get; init; } = null!;
+        public string Collection { get; init; } = null!;
     }
 
     public sealed class SeqOptions
     {
-        public bool Enabled { get; set; }
-        public string Url { get; set; } = null!;
-        public string? ApiKey { get; set; }
+        public bool Enabled { get; init; }
+        public string Url { get; init; } = null!;
+        public string? ApiKey { get; init; }
     }
 
     public sealed class ElkOptions
     {
-        public bool Enabled { get; set; }
-        public string Url { get; set; } = string.Empty;
-        public bool BasicAuthEnabled { get; set; }
-        public string? Username { get; set; }
-        public string? Password { get; set; }
+        public bool Enabled { get; init; }
+        public string Url { get; init; } = string.Empty;
+        public bool BasicAuthEnabled { get; init; }
+        public string? Username { get; init; }
+        public string? Password { get; init; }
     }
 }

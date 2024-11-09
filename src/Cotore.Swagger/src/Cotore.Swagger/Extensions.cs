@@ -1,10 +1,8 @@
-﻿using Cotore.Exceptions;
+﻿using Cotore.Swagger.Exceptions;
 using Cotore.Swagger.Filters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Cotore.Swagger;
 
@@ -86,17 +84,17 @@ public static class Extensions
     {
         if (string.IsNullOrWhiteSpace(options.Name))
         {
-            throw new ConfigurationException("Name cannot be null or whitespace.", nameof(options.Name));
+            throw new SwaggerConfigurationException("Name cannot be null or whitespace.");
         }
 
         if (string.IsNullOrWhiteSpace(options.Title))
         {
-            throw new ConfigurationException("Title cannot be null or whitespace.", nameof(options.Title));
+            throw new SwaggerConfigurationException("Title cannot be null or whitespace.");
         }
 
         if (string.IsNullOrWhiteSpace(options.Version))
         {
-            throw new ConfigurationException("Version cannot be null or whitespace.", nameof(options.Version));
+            throw new SwaggerConfigurationException("Version cannot be null or whitespace.");
         }
     }
 

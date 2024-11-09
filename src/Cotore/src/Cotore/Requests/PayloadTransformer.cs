@@ -1,9 +1,5 @@
-using System.Dynamic;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 using Cotore.Options;
-using Microsoft.Extensions.Options;
 
 namespace Cotore.Requests;
 
@@ -11,8 +7,6 @@ internal sealed class PayloadTransformer(IOptions<CotoreOptions> options, IPaylo
     : IPayloadTransformer
 {
     private readonly CotoreOptions _options = options.Value;
-    private readonly IPayloadManager _payloadManager = payloadManager;
-    private readonly IValueProvider _valueProvider = valueProvider;
     private readonly IDictionary<string, PayloadSchema> _payloads = payloadManager.Payloads;
 
     public bool HasTransformations(Configuration.RouteOptions route)
@@ -39,7 +33,7 @@ internal sealed class PayloadTransformer(IOptions<CotoreOptions> options, IPaylo
             var keyAndValue = setter.Split(':');
             var key = keyAndValue[0];
             var value = keyAndValue[1];
-            commandValues[key] = _valueProvider.Get(value, request, data);
+            commandValues[key] = valueProvider.Get(value, request, data);
             var routeValue = value.Length > 2 ? value.Substring(1, value.Length - 2) : string.Empty;
             if (data.Values.TryGetValue(routeValue, out var dataValue))
             {
@@ -93,5 +87,5 @@ internal sealed class PayloadTransformer(IOptions<CotoreOptions> options, IPaylo
         return JsonConvert.DeserializeObject(content, payload.GetType());
     }
 
-    private string GetPayloadKey(Configuration.RouteOptions route) => _payloadManager.GetKey(route.Method, route.Upstream);
+    private string GetPayloadKey(Configuration.RouteOptions route) => payloadManager.GetKey(route.Method, route.Upstream);
 }

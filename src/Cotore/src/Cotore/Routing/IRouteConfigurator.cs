@@ -1,4 +1,5 @@
 using Cotore.Configuration;
+using RouteOptions = Cotore.Configuration.RouteOptions;
 
 namespace Cotore.Routing;
 

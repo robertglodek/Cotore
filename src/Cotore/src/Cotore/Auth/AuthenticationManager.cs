@@ -1,14 +1,10 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Cotore.Options;
-using Microsoft.Extensions.Options;
 
 namespace Cotore.Auth;
 
 internal sealed class AuthenticationManager(IOptions<CotoreOptions> options) : IAuthenticationManager
 {
-    private readonly CotoreOptions _options = options.Value;
-
     public async Task<bool> TryAuthenticateAsync(HttpRequest request, RouteConfig routeConfig)
     {
         if (!IsAuthenticationRequired(routeConfig))
@@ -22,5 +18,5 @@ internal sealed class AuthenticationManager(IOptions<CotoreOptions> options) : I
     }
 
     private bool IsAuthenticationRequired(RouteConfig routeConfig)
-        => (_options.Auth?.Enabled == true && routeConfig.Route?.Auth != false) || (routeConfig.Route?.Auth == true);
+        => (options.Value.Auth?.Enabled == true && routeConfig.Route?.Auth != false) || (routeConfig.Route?.Auth == true);
 }

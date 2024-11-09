@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using Cotore.Options;
 using Cotore.WebApi;
-using Microsoft.Extensions.Options;
 using Cotore.Requests;
 
 namespace Cotore.Routing;
@@ -83,9 +79,8 @@ internal sealed class RouteProvider : IRouteProvider
                     continue;
                 }
 
-                foreach (var method in route.Methods)
+                foreach (var methodType in route.Methods.Select(method => method.ToLowerInvariant()))
                 {
-                    var methodType = method.ToLowerInvariant();
                     _methods[methodType](routeBuilder, route.Upstream, routeConfig);
                     AddEndpointDefinition(methodType, route.Upstream);
                 }

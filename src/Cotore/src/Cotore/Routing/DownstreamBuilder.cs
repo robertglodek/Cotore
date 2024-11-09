@@ -1,8 +1,5 @@
 using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Cotore.Options;
-using Microsoft.Extensions.Options;
 using Cotore.Requests;
 
 namespace Cotore.Routing;
@@ -10,7 +7,6 @@ namespace Cotore.Routing;
 internal sealed class DownstreamBuilder(IOptions<CotoreOptions> options, IValueProvider valueProvider) : IDownstreamBuilder
 {
     private readonly CotoreOptions _options = options.Value;
-    private readonly IValueProvider _valueProvider = valueProvider;
 
     public string? GetDownstream(RouteConfig routeConfig, HttpRequest request, RouteData data)
     {
@@ -24,10 +20,10 @@ internal sealed class DownstreamBuilder(IOptions<CotoreOptions> options, IValueP
         stringBuilder.Append(downstream);
         if (downstream.Contains('@'))
         {
-            foreach (var token in _valueProvider.Tokens)
+            foreach (var token in valueProvider.Tokens)
             {
                 var tokenName = $"@{token}";
-                stringBuilder.Replace(tokenName, _valueProvider.Get(tokenName, request, data));
+                stringBuilder.Replace(tokenName, valueProvider.Get(tokenName, request, data));
             }
         }
 

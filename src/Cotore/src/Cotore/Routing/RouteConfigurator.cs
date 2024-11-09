@@ -1,15 +1,12 @@
 using Cotore.Configuration;
 using Cotore.Exceptions;
-using Cotore.Helpers;
 using Cotore.Options;
-using Microsoft.Extensions.Options;
+using RouteOptions = Cotore.Configuration.RouteOptions;
 
 namespace Cotore.Routing;
 
 internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRouteConfigurator
 {
-    private readonly CotoreOptions _options = options.Value;
-
     public RouteConfig Configure(ModuleOptions module, RouteOptions route)
         => new()
         {
@@ -24,13 +21,13 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
             return null;
         }
 
-        var loadBalancerEnabled = _options.LoadBalancer?.Enabled == true;
-        var loadBalancerUrl = _options.LoadBalancer?.Url;
+        var loadBalancerEnabled = options.Value.LoadBalancer?.Enabled == true;
+        var loadBalancerUrl = options.Value.LoadBalancer?.Url;
         if (loadBalancerEnabled)
         {
             if (string.IsNullOrWhiteSpace(loadBalancerUrl))
             {
-                throw new ConfigurationException("Load balancer URL cannot be empty.", PropertyPathHelper.GetOptionsPropertyPath<CotoreOptions>(n => n.LoadBalancer!.Url));
+                throw new CotoreConfigurationException("Load balancer URL cannot be empty.");
             }
 
             loadBalancerUrl = loadBalancerUrl.EndsWith('/') ? loadBalancerUrl : $"{loadBalancerUrl}/";
@@ -51,7 +48,7 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
             throw new ArgumentException($"Service for: '{basePath}' was not defined.", nameof(service.Url));
         }
 
-        if (_options.UseLocalUrl)
+        if (options.Value.UseLocalUrl)
         {
             if (string.IsNullOrWhiteSpace(service.LocalUrl))
             {

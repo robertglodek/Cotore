@@ -1,5 +1,4 @@
 ﻿using Cotore.Exceptions;
-using Cotore.Helpers;
 using Cotore.Options;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
@@ -34,13 +33,13 @@ public static class Extensions
 
         if (string.IsNullOrWhiteSpace(appOptions.Name))
         {
-            throw new ConfigurationException("Application name cannot be empty when using the tracing.", PropertyPathHelper.GetOptionsPropertyPath(appSectionName, nameof(appOptions.Name)));
+            throw new AppConfigurationException("Application name cannot be empty when using the tracing.");
         }
 
         builder.Services.AddOpenTelemetry()
-            .WithTracing(builder =>
+            .WithTracing(configure =>
             {
-                builder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+                configure.SetResourceBuilder(ResourceBuilder.CreateDefault()
                         .AddTelemetrySdk()
                         .AddEnvironmentVariableDetector()
                         .AddService(appOptions.Name))
@@ -52,13 +51,13 @@ public static class Extensions
                 {
                     case ConsoleExporter:
                     {
-                        builder.AddConsoleExporter();
+                        configure.AddConsoleExporter();
                         break;
                     }
                     case JaegerExporter:
                     {
                         var jaegerOptions = options.Jaeger;
-                        builder.AddJaegerExporter(jaeger =>
+                        configure.AddJaegerExporter(jaeger =>
                         {
                             jaeger.AgentHost = jaegerOptions.AgentHost;
                             jaeger.AgentPort = jaegerOptions.AgentPort;

@@ -1,15 +1,11 @@
 using System.Net.Http.Headers;
 using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Cotore.Hooks;
 using Cotore.Options;
 using System.Diagnostics;
 using Cotore.Serialization;
 using Cotore.Requests;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
 
 namespace Cotore.Handlers;
 
@@ -21,16 +17,11 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
     private const string ContentTypeHeader = "Content-Type";
     private static readonly string[] ExcludedResponseHeaders = ["transfer-encoding", "content-length"];
     private static readonly HttpContent EmptyContent = new StringContent("{}", Encoding.UTF8, ContentTypeApplicationJson);
-    private readonly IRequestProcessor _requestProcessor = requestProcessor;
-    private readonly IPayloadValidator _payloadValidator = payloadValidator;
     private readonly CotoreOptions _options = options.Value;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-    private readonly ILogger<DownstreamHandler> _logger = logger;
     private readonly IEnumerable<IRequestHook> _requestHooks = serviceProvider.GetServices<IRequestHook>();
     private readonly IEnumerable<IResponseHook> _responseHooks = serviceProvider.GetServices<IResponseHook>();
     private readonly IEnumerable<IHttpRequestHook> _httpRequestHooks = serviceProvider.GetServices<IHttpRequestHook>();
     private readonly IEnumerable<IHttpResponseHook> _httpResponseHooks = serviceProvider.GetServices<IHttpResponseHook>();
-    private readonly IJsonSerializer _jsonSerializer = jsonSerializer;
 
     public async Task HandleAsync(HttpContext context, RouteConfig config, CancellationToken cancellationToken = default)
     {
@@ -41,7 +32,7 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
             return;
         }
 
-        var executionData = await _requestProcessor.ProcessAsync(config, context);
+        var executionData = await requestProcessor.ProcessAsync(config, context);
 
         foreach (var hook in _requestHooks)
         {
@@ -50,7 +41,7 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
 
         if (!executionData.IsPayloadValid)
         {
-            await _payloadValidator.TryValidate(executionData, context.Response);
+            await payloadValidator.TryValidate(executionData, context.Response);
             return;
         }
 
@@ -59,13 +50,13 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
             return;
         }
 
-        _logger.LogInformation("Sending HTTP {RequestMethod} request to: {DownstreamUrl} [Activity ID: {ActivityId}]",
+        logger.LogInformation("Sending HTTP {RequestMethod} request to: {DownstreamUrl} [Activity ID: {ActivityId}]",
             context.Request.Method, config.Downstream, activity!.Id);
 
         var response = await SendRequestAsync(executionData);
         if (response is null)
         {
-            _logger.LogWarning("Did not receive HTTP response for: {DownstreamUrl}", executionData.Route.Downstream);
+            logger.LogWarning("Did not receive HTTP response for: {DownstreamUrl}", executionData.Route.Downstream);
             return;
         }
 
@@ -74,7 +65,7 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
 
     private async Task<HttpResponseMessage?> SendRequestAsync(ExecutionData executionData)
     {
-        var httpClient = _httpClientFactory.CreateClient("Cotore");
+        var httpClient = httpClientFactory.CreateClient("Cotore");
         var method = (string.IsNullOrWhiteSpace(executionData.Route.DownstreamMethod)
             ? executionData.Context.Request.Method
             : executionData.Route.DownstreamMethod).ToLowerInvariant();
@@ -177,7 +168,7 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
                 return EmptyContent;
             }
 
-            return new StringContent(_jsonSerializer.Serialize(data), Encoding.UTF8, ContentTypeApplicationJson);
+            return new StringContent(jsonSerializer.Serialize(data), Encoding.UTF8, ContentTypeApplicationJson);
         }
 
         if (executionData.Context.Request.Body is null)
@@ -213,13 +204,13 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
 
         if (!httpResponse.IsSuccessStatusCode)
         {
-            _logger.LogInformation("Received an invalid response ({StatusCode}) to HTTP {Method} request from: {DownstreamUrl} [Activity ID: {ActivityId}]",
+            logger.LogInformation("Received an invalid response ({StatusCode}) to HTTP {Method} request from: {DownstreamUrl} [Activity ID: {ActivityId}]",
                                    httpResponse.StatusCode, method, executionData.Route.Downstream, activity!.Id);
             await SetErrorResponseAsync(response, httpResponse, executionData);
             return;
         }
 
-        _logger.LogInformation("Received a successful response ({StatusCode}) to HTTP {Method} request from: {DownstreamUrl} [Activity ID: {ActivityId}]",
+        logger.LogInformation("Received a successful response ({StatusCode}) to HTTP {Method} request from: {DownstreamUrl} [Activity ID: {ActivityId}]",
                                httpResponse.StatusCode, method, executionData.Route.Downstream, activity!.Id);
 
         await SetSuccessResponseAsync(response, httpResponse, executionData);

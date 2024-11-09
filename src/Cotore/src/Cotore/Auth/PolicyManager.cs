@@ -1,5 +1,4 @@
 using Cotore.Options;
-using Microsoft.Extensions.Options;
 
 namespace Cotore.Auth;
 
@@ -16,12 +15,13 @@ internal sealed class PolicyManager : IPolicyManager
     }
 
     public IDictionary<string, string>? GetClaims(string policy)
-        => _policies.TryGetValue(policy, out var claims) ? claims : null;
+        => _policies.GetValueOrDefault(policy);
 
     private Dictionary<string, Dictionary<string, string>> InitializePolicies() =>
         _options.Auth?.Policies?.ToDictionary(
             policy => policy.Key,
-            policy => policy.Value.Claims.ToDictionary(claim => claim.Key, claim => claim.Value)) ?? [];
+            policy => policy.Value.Claims.ToDictionary(claim 
+                => claim.Key, claim => claim.Value)) ?? [];
 
     private void VerifyPolicies()
     {

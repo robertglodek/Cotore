@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace Cotore.Hooks;
 
 public interface IResponseHook

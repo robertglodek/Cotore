@@ -1,7 +1,5 @@
-using System.Dynamic;
 using Newtonsoft.Json;
 using Cotore.Options;
-using Microsoft.Extensions.Options;
 
 namespace Cotore.Requests;
 

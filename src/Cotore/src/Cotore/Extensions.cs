@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Cotore.Auth;
 using Cotore.Handlers;
 using Cotore.Options;
@@ -11,14 +9,12 @@ using Cotore.WebApi;
 using Polly;
 using Polly.Extensions.Http;
 using System.Security.Cryptography.X509Certificates;
-using Cotore.Exceptions;
 using Figgle;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Cotore.Exceptions;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.Extensions.Options;
 using Cotore.Serialization;
-using Microsoft.AspNetCore.Http;
 
 namespace Cotore;
 
@@ -96,10 +92,10 @@ public static class Extensions
     {
         if (string.IsNullOrWhiteSpace(options.Http.Name))
         {
-            throw new ConfigurationException("HTTP client name cannot be empty.", nameof(options.Http.Name));
+            throw new CotoreConfigurationException("HTTP client name cannot be empty.");
         }
 
-        var httpClientbuilder = services
+        var httpClientBuilder = services
           .AddHttpClient(options.Http.Name)
           .AddTransientHttpErrorPolicy(_ => HttpPolicyExtensions.HandleTransientHttpError()
               .WaitAndRetryAsync(options.Http.Resiliency.Retries, retry =>
@@ -108,16 +104,14 @@ public static class Extensions
                       : options.Http.Resiliency.RetryInterval ?? TimeSpan.FromSeconds(2)));
 
         var certificateLocation = options.Http.Certificate?.Location;
-        if (options.Http.Certificate is not null && !string.IsNullOrWhiteSpace(certificateLocation))
+        if (options.Http.Certificate is null || string.IsNullOrWhiteSpace(certificateLocation)) return services;
+        var certificate = new X509Certificate2(certificateLocation, options.Http.Certificate.Password);
+        httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() =>
         {
-            var certificate = new X509Certificate2(certificateLocation, options.Http.Certificate.Password);
-            httpClientbuilder.ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                var handler = new HttpClientHandler();
-                handler.ClientCertificates.Add(certificate);
-                return handler;
-            });
-        }
+            var handler = new HttpClientHandler();
+            handler.ClientCertificates.Add(certificate);
+            return handler;
+        });
 
         return services;
     }

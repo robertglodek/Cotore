@@ -4,7 +4,7 @@ namespace Cotore.Routing;
 
 internal sealed class UpstreamBuilder : IUpstreamBuilder
 {
-    public string Build(ModuleOptions module, RouteOptions route)
+    public string Build(ModuleOptions module, Configuration.RouteOptions route)
     {
         var path = module.Path;
         var upstream = string.IsNullOrWhiteSpace(route.Upstream) ? string.Empty : route.Upstream;

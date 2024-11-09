@@ -1,13 +1,9 @@
 using Cotore.Serialization;
-using Microsoft.AspNetCore.Http;
 
 namespace Cotore.Requests;
 
 internal sealed class PayloadValidator(ISchemaValidator schemaValidator, IJsonSerializer jsonSerializer) : IPayloadValidator
 {
-    private readonly ISchemaValidator _schemaValidator = schemaValidator;
-    private readonly IJsonSerializer _jsonSerializer = jsonSerializer;
-
     public async Task<bool> TryValidate(ExecutionData executionData, HttpResponse httpResponse)
     {
         if (executionData.IsPayloadValid)
@@ -16,7 +12,7 @@ internal sealed class PayloadValidator(ISchemaValidator schemaValidator, IJsonSe
         }
 
         var response = new {errors = executionData.ValidationErrors};
-        var payload = _jsonSerializer.Serialize(response);
+        var payload = jsonSerializer.Serialize(response);
         httpResponse.ContentType = "application/json";
         await httpResponse.WriteAsync(payload);
 
@@ -30,6 +26,6 @@ internal sealed class PayloadValidator(ISchemaValidator schemaValidator, IJsonSe
             return [];
         }
 
-        return await _schemaValidator.ValidateAsync(_jsonSerializer.Serialize(payloadSchema.Payload), payloadSchema.Schema);
+        return await schemaValidator.ValidateAsync(jsonSerializer.Serialize(payloadSchema.Payload), payloadSchema.Schema);
     }
 }

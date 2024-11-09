@@ -1,6 +1,4 @@
 using Cotore.Routing;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Net.Http.Headers;
 using System.Net.Mime;
 
@@ -13,10 +11,6 @@ internal sealed class RequestProcessor(
     IDownstreamBuilder downstreamBuilder) : IRequestProcessor
 {
     private static readonly string[] SkipPayloadMethods = ["get", "delete", "head", "options", "trace"];
-    private readonly IPayloadTransformer _payloadTransformer = payloadTransformer;
-    private readonly IPayloadBuilder _payloadBuilder = payloadBuilder;
-    private readonly IPayloadValidator _payloadValidator = payloadValidator;
-    private readonly IDownstreamBuilder _downstreamBuilder = downstreamBuilder;
 
     public async Task<ExecutionData> ProcessAsync(RouteConfig routeConfig, HttpContext context)
     {
@@ -30,9 +24,9 @@ internal sealed class RequestProcessor(
         var route = routeConfig.Route;
         var skipPayload = route.Use == "downstream" && SkipPayloadMethods.Contains(route.DownstreamMethod);
         var routeData = context.GetRouteData();
-        var hasTransformations = !skipPayload && _payloadTransformer.HasTransformations(route);
+        var hasTransformations = !skipPayload && payloadTransformer.HasTransformations(route);
         var payload = hasTransformations
-            ? _payloadTransformer.Transform(await _payloadBuilder.BuildRawAsync(context.Request), route, context.Request, routeData)
+            ? payloadTransformer.Transform(await payloadBuilder.BuildRawAsync(context.Request), route, context.Request, routeData)
             : null;
 
         var executionData = new ExecutionData
@@ -43,7 +37,7 @@ internal sealed class RequestProcessor(
             Route = routeConfig.Route,
             Context = context,
             Data = routeData,
-            Downstream = _downstreamBuilder.GetDownstream(routeConfig, context.Request, routeData),
+            Downstream = downstreamBuilder.GetDownstream(routeConfig, context.Request, routeData),
             Payload = payload?.Payload,
             HasPayload = hasTransformations
         };
@@ -53,7 +47,7 @@ internal sealed class RequestProcessor(
             return executionData;
         }
 
-        executionData.ValidationErrors = await _payloadValidator.GetValidationErrorsAsync(payload);
+        executionData.ValidationErrors = await payloadValidator.GetValidationErrorsAsync(payload);
 
         return executionData;
     }

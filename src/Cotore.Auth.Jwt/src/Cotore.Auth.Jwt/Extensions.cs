@@ -7,7 +7,7 @@ namespace Cotore.Auth.Jwt;
 
 public static class Extensions
 {
-    private const string SectionName = "cotore:jwt";
+    private const string SectionName = "jwt";
     private const string RegistryName = "auth";
 
     public static ICotoreBuilder AddJwt(this ICotoreBuilder builder, string sectionName = SectionName)

@@ -6,7 +6,7 @@ namespace Cotore.CORS;
 
 public static class Extensions
 {
-    private const string DefaultSectionName = "cotore:cors";
+    private const string DefaultSectionName = "cors";
     private const string RegistryName = "cors";
 
     public static ICotoreBuilder AddCorsPolicy(this ICotoreBuilder builder, string sectionName = DefaultSectionName)

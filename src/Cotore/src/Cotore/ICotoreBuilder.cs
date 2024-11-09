@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Cotore;
+﻿namespace Cotore;
 
 public interface ICotoreBuilder
 {

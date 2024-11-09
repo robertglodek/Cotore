@@ -18,7 +18,7 @@ public static class PropertyPathHelper
         if (propertyExpression.Body is not MemberExpression member)
         {
             // Handle UnaryExpression (conversion to object)
-            if (propertyExpression.Body is UnaryExpression unary && unary.Operand is MemberExpression unaryMember)
+            if (propertyExpression.Body is UnaryExpression { Operand: MemberExpression unaryMember })
             {
                 member = unaryMember;
             }

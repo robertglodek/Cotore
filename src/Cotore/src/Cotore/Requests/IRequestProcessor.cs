@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace Cotore.Requests;
 
 public interface IRequestProcessor
