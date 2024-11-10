@@ -74,7 +74,6 @@ public static class Extensions
         builder.Services.AddSingleton<IRouteConfigurator, RouteConfigurator>();
         builder.Services.AddSingleton<IRouteProvider, RouteProvider>();
         builder.Services.AddSingleton<ISchemaValidator, SchemaValidator>();
-        builder.Services.AddSingleton<IUpstreamBuilder, UpstreamBuilder>();
         builder.Services.AddSingleton<IValueProvider, ValueProvider>();
         builder.Services.AddSingleton<DownstreamHandler>();
         builder.Services.AddSingleton<ReturnValueHandler>();
@@ -159,11 +158,6 @@ public static class Extensions
         requestHandlerManager.AddHandler("downstream", app.ApplicationServices.GetRequiredService<DownstreamHandler>());
         requestHandlerManager.AddHandler("return_value", app.ApplicationServices.GetRequiredService<ReturnValueHandler>());
 
-        if (options.Modules is null)
-        {
-            return app;
-        }
-
         var handlers = options.Modules
             .Select(m => m.Value)
             .SelectMany(m => m.Routes)
@@ -175,7 +169,7 @@ public static class Extensions
         {
             if (requestHandlerManager.Get(handler) is null)
             {
-                throw new ArgumentException($"Handler: '{handler}' was not defined.");
+                throw new CotoreConfigurationException($"Handler: '{handler}' was not defined.");
             }
         }
 
@@ -185,34 +179,28 @@ public static class Extensions
     private static IApplicationBuilder AddRoutes(this IApplicationBuilder app)
     {
         var options = app.ApplicationServices.GetRequiredService<IOptions<CotoreOptions>>().Value;
-        if (options.Modules is null)
-        {
-            return app;
-        }
-
-        foreach (var route in options.Modules.SelectMany(m => m.Value.Routes))
-        {
-            if (route.Methods is not null && route.Methods.Count != 0)
-            {
-                if (route.Methods.Any(m => m.Equals(route.Method, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    throw new ArgumentException($"There's already a method {route.Method!.ToUpperInvariant()} declared in route 'methods', as well as in 'method'.");
-                }
-
-                continue;
-            }
-
-            route.Method = (string.IsNullOrWhiteSpace(route.Method) ? HttpMethods.Get : route.Method).ToLowerInvariant();
-            route.DownstreamMethod =
-                (string.IsNullOrWhiteSpace(route.DownstreamMethod) ? route.Method : route.DownstreamMethod)
-                .ToLowerInvariant();
-        }
+        ValidateRouteMethods(options);
 
         var routeProvider = app.ApplicationServices.GetRequiredService<IRouteProvider>();
         app.UseRouting();
         app.UseEndpoints(routeProvider.Build());
 
         return app;
+    }
+    
+    private static void ValidateRouteMethods(CotoreOptions options)
+    {
+        foreach (var route in options.Modules.SelectMany(m => m.Value.Routes))
+        {
+            if (route.Methods.Count == 0) continue;
+
+            if (route.Methods.Any(m => m.Equals(route.Method, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new CotoreConfigurationException($"The method '{route.Method.ToUpperInvariant()}'" +
+                                                       $" is already defined in both the 'methods' collection" +
+                                                       $" and as the 'method' for upstream '{route.Upstream}'.");
+            }
+        }
     }
 
     public static IApplicationBuilder UseRequestHandler<T>(this IApplicationBuilder app, string name)

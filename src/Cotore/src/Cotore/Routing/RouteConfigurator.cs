@@ -11,7 +11,8 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
         => new()
         {
             Route = route,
-            Downstream = GetDownstream(module, route)
+            Downstream = GetDownstream(module, route),
+            Upstream = GetUpstream(module, route)
         };
 
     private string? GetDownstream(ModuleOptions module, RouteOptions route)
@@ -81,4 +82,33 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
     }
 
     private static string SetProtocol(string service) => service.StartsWith("http") ? service : $"http://{service}";
+    
+    
+    private string GetUpstream(ModuleOptions module, RouteOptions route)
+    {
+        var path = module.Path;
+        var upstream = string.IsNullOrWhiteSpace(route.Upstream) ? string.Empty : route.Upstream;
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            var modulePath = path.EndsWith('/') ? path[..^1] : path;
+            if (!upstream.StartsWith('/'))
+            {
+                upstream = $"/{upstream}";
+            }
+
+            upstream = $"{modulePath}{upstream}";
+        }
+
+        if (upstream.EndsWith('/'))
+        {
+            upstream = upstream[..^1];
+        }
+
+        if (route.MatchAll)
+        {
+            upstream = $"{upstream}/{{*url}}";
+        }
+
+        return upstream;
+    }
 }

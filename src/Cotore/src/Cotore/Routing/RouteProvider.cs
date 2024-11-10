@@ -1,3 +1,4 @@
+using Cotore.Exceptions;
 using Microsoft.AspNetCore.Builder;
 using Cotore.Options;
 using Cotore.WebApi;
@@ -10,7 +11,6 @@ internal sealed class RouteProvider : IRouteProvider
     private readonly IDictionary<string, Action<IEndpointRouteBuilder, string, RouteConfig>> _methods;
     private readonly IRouteConfigurator _routeConfigurator;
     private readonly IRequestExecutionValidator _requestExecutionValidator;
-    private readonly IUpstreamBuilder _upstreamBuilder;
     private readonly WebApiEndpointDefinitions _definitions;
     private readonly CotoreOptions _options;
     private readonly IRequestHandlerManager _requestHandlerManager;
@@ -19,12 +19,10 @@ internal sealed class RouteProvider : IRouteProvider
         IRequestHandlerManager requestHandlerManager,
         IRouteConfigurator routeConfigurator,
         IRequestExecutionValidator requestExecutionValidator,
-        IUpstreamBuilder upstreamBuilder,
         WebApiEndpointDefinitions definitions)
     {
         _routeConfigurator = routeConfigurator;
         _requestExecutionValidator = requestExecutionValidator;
-        _upstreamBuilder = upstreamBuilder;
         _definitions = definitions;
         _options = options.Value;
         _requestHandlerManager = requestHandlerManager;
@@ -62,21 +60,15 @@ internal sealed class RouteProvider : IRouteProvider
             {
                 if (string.IsNullOrWhiteSpace(route.Method) && (route.Methods is null || route.Methods.Count == 0))
                 {
-                    throw new ArgumentException("Both, route 'method' and 'methods' cannot be empty.");
+                    throw new CotoreConfigurationException("Both, route 'method' and 'methods' cannot be empty.");
                 }
-
-                route.Upstream = _upstreamBuilder.Build(module.Value, route);
+                
                 var routeConfig = _routeConfigurator.Configure(module.Value, route);
 
                 if (!string.IsNullOrWhiteSpace(route.Method))
                 {
                     _methods[route.Method](routeBuilder, route.Upstream, routeConfig);
                     AddEndpointDefinition(route.Method, route.Upstream);
-                }
-
-                if (route.Methods is null)
-                {
-                    continue;
                 }
 
                 foreach (var methodType in route.Methods.Select(method => method.ToLowerInvariant()))

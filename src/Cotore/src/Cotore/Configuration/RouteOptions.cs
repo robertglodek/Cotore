@@ -3,13 +3,13 @@ namespace Cotore.Configuration;
 [UsedImplicitly]
 public sealed class RouteOptions
 {
-    public string Upstream { get; set; } = null!;
-    public string? Method { get; set; }
+    public string Upstream { get; init; } = null!;
+    public string Method { get; init; } = "GET";
     public List<string> Methods { get; init; } = [];
     public bool MatchAll { get; init; }
     public string Use { get; init; } = string.Empty;
     public string? Downstream { get; init; }
-    public string? DownstreamMethod { get; set; }
+    public string? DownstreamMethod { get; init; }
     public bool? PassQueryString { get; init; }
     public string? ReturnValue { get; init; }
     public string? Payload { get; init; }
