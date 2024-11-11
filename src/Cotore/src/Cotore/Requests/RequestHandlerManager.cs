@@ -26,14 +26,14 @@ internal sealed class RequestHandlerManager(ILogger<RequestHandlerManager> logge
         }
     }
 
-    public async Task HandleAsync(string handler, HttpContext context, RouteConfig routeConfig, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(string handler, HttpContext context, RouteConfig routeConfig)
     {
         if (!Handlers.TryGetValue(handler, out var instance))
         {
             throw new Exception($"Handler: '{handler}' was not found.");
         }
 
-        await instance.HandleAsync(context, routeConfig, cancellationToken);
+        await instance.HandleAsync(context, routeConfig);
     }
 
     public IHandler? Get(string name) => Handlers.GetValueOrDefault(name);

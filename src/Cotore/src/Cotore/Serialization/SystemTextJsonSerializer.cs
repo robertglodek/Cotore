@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace Cotore.Serialization;
+﻿namespace Cotore.Serialization;
 
 internal sealed class SystemTextJsonSerializer : IJsonSerializer
 {

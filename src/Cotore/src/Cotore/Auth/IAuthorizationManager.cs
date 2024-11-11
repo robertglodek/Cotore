@@ -4,5 +4,5 @@ namespace Cotore.Auth;
 
 public interface IAuthorizationManager
 {
-    bool IsAuthorized(ClaimsPrincipal user, RouteConfig routeConfig);
+    bool IsAuthorized(ClaimsPrincipal? user, RouteConfig routeConfig);
 }

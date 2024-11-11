@@ -14,20 +14,19 @@ internal sealed class PolicyManager : IPolicyManager
         VerifyPolicies();
     }
 
-    public IDictionary<string, string>? GetClaims(string policy)
-        => _policies.GetValueOrDefault(policy);
+    public IDictionary<string, string>? GetClaims(string policy) => _policies.GetValueOrDefault(policy);
 
     private Dictionary<string, Dictionary<string, string>> InitializePolicies() =>
-        _options.Auth?.Policies?.ToDictionary(
+        _options.Auth?.Policies.ToDictionary(
             policy => policy.Key,
             policy => policy.Value.Claims.ToDictionary(claim 
                 => claim.Key, claim => claim.Value)) ?? [];
 
     private void VerifyPolicies()
     {
-        var definedPolicies = (_options.Modules ?? [])
-          .SelectMany(module => module.Value.Routes ?? [])
-          .SelectMany(route => route.Policies ?? [])
+        var definedPolicies = (_options.Modules)
+          .SelectMany(module => module.Value.Routes)
+          .SelectMany(route => route.Policies)
           .Distinct();
 
         var missingPolicies = definedPolicies.Except(_policies.Keys).ToArray();

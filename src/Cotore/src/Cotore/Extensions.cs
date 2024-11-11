@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Cotore.Auth;
 using Cotore.Handlers;
@@ -10,8 +9,6 @@ using Polly;
 using Polly.Extensions.Http;
 using System.Security.Cryptography.X509Certificates;
 using Figgle;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using Cotore.Exceptions;
 using Microsoft.AspNetCore.Http.Json;
 using Cotore.Serialization;
@@ -58,7 +55,6 @@ public static class Extensions
         });
 
         builder.Services.ConfigureHttpClient(cotoreOptions);
-        builder.Services.ConfigurePayloads(cotoreOptions);
 
         builder.Services.AddSingleton<IAuthenticationManager, AuthenticationManager>();
         builder.Services.AddSingleton<IAuthorizationManager, AuthorizationManager>();
@@ -68,7 +64,7 @@ public static class Extensions
         builder.Services.AddSingleton<IPayloadManager, PayloadManager>();
         builder.Services.AddSingleton<IPayloadTransformer, PayloadTransformer>();
         builder.Services.AddSingleton<IPayloadValidator, PayloadValidator>();
-        builder.Services.AddSingleton<IRequestExecutionValidator, RequestExecutionValidator>();
+        builder.Services.AddSingleton<IRequestAccessValidator, RequestAccessValidator>();
         builder.Services.AddSingleton<IRequestHandlerManager, RequestHandlerManager>();
         builder.Services.AddSingleton<IRequestProcessor, RequestProcessor>();
         builder.Services.AddSingleton<IRouteConfigurator, RouteConfigurator>();
@@ -115,18 +111,6 @@ public static class Extensions
         return services;
     }
 
-    private static IServiceCollection ConfigurePayloads(this IServiceCollection services, CotoreOptions options)
-    {
-        options.PayloadsFolder ??= "payloads";
-
-        if (options.PayloadsFolder.EndsWith('/'))
-        {
-            options.PayloadsFolder = options.PayloadsFolder[..^1];
-        }
-
-        return services;
-    }
-
     public static IApplicationBuilder UseCotore(this IApplicationBuilder app)
     {
         var options = app.ApplicationServices.GetRequiredService<IOptions<CotoreOptions>>().Value;
@@ -144,14 +128,13 @@ public static class Extensions
             });
         }
 
-        app.RegisterHandlers();
-
+        app.AddRequestHandlers();
         app.AddRoutes();
-
+        
         return app;
     }
 
-    private static IApplicationBuilder RegisterHandlers(this IApplicationBuilder app)
+    private static IApplicationBuilder AddRequestHandlers(this IApplicationBuilder app)
     {
         var options = app.ApplicationServices.GetRequiredService<IOptions<CotoreOptions>>().Value;
         var requestHandlerManager = app.ApplicationServices.GetRequiredService<IRequestHandlerManager>();
@@ -192,13 +175,15 @@ public static class Extensions
     {
         foreach (var route in options.Modules.SelectMany(m => m.Value.Routes))
         {
+            if (string.IsNullOrWhiteSpace(route.Method) && (route.Methods is null || route.Methods.Count == 0))
+            {
+                throw new CotoreConfigurationException("Both, route 'method' and 'methods' cannot be empty.");
+            }
             if (route.Methods.Count == 0) continue;
-
             if (route.Methods.Any(m => m.Equals(route.Method, StringComparison.InvariantCultureIgnoreCase)))
             {
                 throw new CotoreConfigurationException($"The method '{route.Method.ToUpperInvariant()}'" +
-                                                       $" is already defined in both the 'methods' collection" +
-                                                       $" and as the 'method' for upstream '{route.Upstream}'.");
+                                                       $" is already defined in 'methods' and as 'method'.");
             }
         }
     }
@@ -209,13 +194,8 @@ public static class Extensions
         var requestHandlerManager = app.ApplicationServices.GetRequiredService<IRequestHandlerManager>();
         var handler = app.ApplicationServices.GetRequiredService<T>();
         requestHandlerManager.AddHandler(name, handler);
-
         return app;
     }
-
-    public static bool IsNotEmpty<T>(this IEnumerable<T> enumerable) => !enumerable.IsEmpty();
-
-    public static bool IsEmpty<T>(this IEnumerable<T> enumerable) => enumerable is null || !enumerable.Any();
 
     public static T BindOptions<T>(this IConfiguration configuration, string sectionName) where T : new()
         => BindOptions<T>(configuration.GetSection(sectionName));
@@ -227,10 +207,10 @@ public static class Extensions
         return options;
     }
 
-    public static T BindOptions<T>(this IConfiguration section) where T : new()
+    public static T BindOptions<T>(this IConfiguration configuration) where T : new()
     {
         var options = new T();
-        section.Bind(options);
+        configuration.Bind(options);
         return options;
     }
 }

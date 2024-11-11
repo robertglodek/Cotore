@@ -12,5 +12,5 @@ public sealed class ExecutionData
     public ExpandoObject? Payload { get; set; }
     public bool HasPayload { get; set; }
     public IEnumerable<Error> ValidationErrors { get; set; } = [];
-    public bool IsPayloadValid => ValidationErrors is null || !ValidationErrors.Any();
+    public bool IsPayloadValid => !ValidationErrors.Any();
 }

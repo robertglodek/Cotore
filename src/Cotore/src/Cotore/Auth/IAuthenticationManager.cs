@@ -2,5 +2,5 @@ namespace Cotore.Auth;
 
 public interface IAuthenticationManager
 {
-    Task<bool> TryAuthenticateAsync(HttpRequest request, RouteConfig routeConfig);
+    Task<bool> IsAuthenticated(HttpRequest request, RouteConfig routeConfig);
 }

@@ -1,5 +1,3 @@
-using Cotore.Exceptions;
-using Microsoft.AspNetCore.Builder;
 using Cotore.Options;
 using Cotore.WebApi;
 using Cotore.Requests;
@@ -10,7 +8,7 @@ internal sealed class RouteProvider : IRouteProvider
 {
     private readonly IDictionary<string, Action<IEndpointRouteBuilder, string, RouteConfig>> _methods;
     private readonly IRouteConfigurator _routeConfigurator;
-    private readonly IRequestExecutionValidator _requestExecutionValidator;
+    private readonly IRequestAccessValidator _requestAccessValidator;
     private readonly WebApiEndpointDefinitions _definitions;
     private readonly CotoreOptions _options;
     private readonly IRequestHandlerManager _requestHandlerManager;
@@ -18,11 +16,11 @@ internal sealed class RouteProvider : IRouteProvider
     public RouteProvider(IOptions<CotoreOptions> options,
         IRequestHandlerManager requestHandlerManager,
         IRouteConfigurator routeConfigurator,
-        IRequestExecutionValidator requestExecutionValidator,
+        IRequestAccessValidator requestAccessValidator,
         WebApiEndpointDefinitions definitions)
     {
         _routeConfigurator = routeConfigurator;
-        _requestExecutionValidator = requestExecutionValidator;
+        _requestAccessValidator = requestAccessValidator;
         _definitions = definitions;
         _options = options.Value;
         _requestHandlerManager = requestHandlerManager;
@@ -34,21 +32,21 @@ internal sealed class RouteProvider : IRouteProvider
                 builder.MapPost(path, ctx => Handle(ctx, routeConfig)),
             ["put"] = (builder, path, routeConfig) =>
                 builder.MapPut(path, ctx => Handle(ctx, routeConfig)),
+            ["patch"] = (builder, path, routeConfig) =>
+                builder.MapPatch(path, ctx => Handle(ctx, routeConfig)),
             ["delete"] = (builder, path, routeConfig) =>
-                builder.MapDelete(path, ctx => Handle(ctx, routeConfig)),
+                builder.MapDelete(path, ctx => Handle(ctx, routeConfig))
         };
     }
 
     private async Task Handle(HttpContext context, RouteConfig routeConfig)
     {
-        var skipAuth = _options.Auth?.Enabled != true && routeConfig.Route?.Auth != true;
-
-        if (!skipAuth && !await _requestExecutionValidator.TryExecuteAsync(context, routeConfig))
+        if (!await _requestAccessValidator.ValidateAsync(context, routeConfig))
         {
             return;
         }
 
-        var handler = routeConfig.Route!.Use;
+        var handler = routeConfig.Route.Use;
         await _requestHandlerManager.HandleAsync(handler, context, routeConfig);
     }
 
@@ -58,23 +56,18 @@ internal sealed class RouteProvider : IRouteProvider
         {
             foreach (var route in module.Value.Routes)
             {
-                if (string.IsNullOrWhiteSpace(route.Method) && (route.Methods is null || route.Methods.Count == 0))
-                {
-                    throw new CotoreConfigurationException("Both, route 'method' and 'methods' cannot be empty.");
-                }
-                
                 var routeConfig = _routeConfigurator.Configure(module.Value, route);
 
                 if (!string.IsNullOrWhiteSpace(route.Method))
                 {
-                    _methods[route.Method](routeBuilder, route.Upstream, routeConfig);
-                    AddEndpointDefinition(route.Method, route.Upstream);
+                    _methods[route.Method.ToLowerInvariant()](routeBuilder, routeConfig.Upstream, routeConfig);
+                    AddEndpointDefinition(route.Method, routeConfig.Upstream);
                 }
 
                 foreach (var methodType in route.Methods.Select(method => method.ToLowerInvariant()))
                 {
-                    _methods[methodType](routeBuilder, route.Upstream, routeConfig);
-                    AddEndpointDefinition(methodType, route.Upstream);
+                    _methods[methodType](routeBuilder, routeConfig.Upstream, routeConfig);
+                    AddEndpointDefinition(methodType, routeConfig.Upstream);
                 }
             }
         }

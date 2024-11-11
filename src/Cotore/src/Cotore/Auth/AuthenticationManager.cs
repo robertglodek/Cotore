@@ -5,7 +5,7 @@ namespace Cotore.Auth;
 
 internal sealed class AuthenticationManager(IOptions<CotoreOptions> options) : IAuthenticationManager
 {
-    public async Task<bool> TryAuthenticateAsync(HttpRequest request, RouteConfig routeConfig)
+    public async Task<bool> IsAuthenticated(HttpRequest request, RouteConfig routeConfig)
     {
         if (!IsAuthenticationRequired(routeConfig))
         {
@@ -18,5 +18,5 @@ internal sealed class AuthenticationManager(IOptions<CotoreOptions> options) : I
     }
 
     private bool IsAuthenticationRequired(RouteConfig routeConfig)
-        => (options.Value.Auth?.Enabled == true && routeConfig.Route?.Auth != false) || (routeConfig.Route?.Auth == true);
+        => (options.Value.Auth?.Enabled == true && routeConfig.Route.Auth != false) || routeConfig.Route.Auth == true;
 }

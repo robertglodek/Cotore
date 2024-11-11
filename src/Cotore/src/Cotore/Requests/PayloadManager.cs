@@ -16,16 +16,11 @@ internal sealed class PayloadManager : IPayloadManager
 
     private Dictionary<string, PayloadSchema> LoadPayloads()
     {
-        if (_options.Modules is null)
-        {
-            return [];
-        }
-        
         var payloads = new Dictionary<string, PayloadSchema>();
         var modulesPath = _options.ModulesPath;
         modulesPath = string.IsNullOrWhiteSpace(modulesPath)
             ? string.Empty
-            : (modulesPath.EndsWith('/') ? modulesPath : $"{modulesPath}/");
+            : modulesPath.EndsWith('/') ? modulesPath : $"{modulesPath}/";
 
         foreach (var module in _options.Modules)
         {
@@ -36,7 +31,7 @@ internal sealed class PayloadManager : IPayloadManager
                     continue;
                 }
 
-                var payloadsFolder = _options.PayloadsFolder;
+                var payloadsFolder = _options.PayloadsFolder.TrimStart('/').TrimEnd('/');
                 var fullPath = $"{modulesPath}{module.Value.Name}/{payloadsFolder}/{route.Payload}";
                 var fullJsonPath = fullPath.EndsWith(".json") ? fullPath : $"{fullPath}.json";
                 if (!File.Exists(fullJsonPath))

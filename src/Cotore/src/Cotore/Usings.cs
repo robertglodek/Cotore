@@ -6,3 +6,6 @@ global using Microsoft.AspNetCore.Http;
 global using JetBrains.Annotations;
 global using Microsoft.AspNetCore.Routing;
 global using Microsoft.Extensions.Logging;
+global using System.Text.Json.Serialization;
+global using System.Text.Json;
+global using Microsoft.AspNetCore.Builder;

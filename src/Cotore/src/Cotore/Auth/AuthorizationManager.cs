@@ -4,16 +4,11 @@ namespace Cotore.Auth;
 
 internal sealed class AuthorizationManager(IPolicyManager policyManager) : IAuthorizationManager
 {
-    public bool IsAuthorized(ClaimsPrincipal user, RouteConfig routeConfig)
+    public bool IsAuthorized(ClaimsPrincipal? user, RouteConfig routeConfig)
     {
         if (user == null)
         {
             return false;
-        }
-
-        if (routeConfig?.Route == null)
-        {
-            return true;
         }
 
         return HasRequiredPolicies(user, routeConfig.Route.Policies) &&
@@ -21,7 +16,7 @@ internal sealed class AuthorizationManager(IPolicyManager policyManager) : IAuth
     }
 
     private bool HasRequiredPolicies(ClaimsPrincipal user, IEnumerable<string> policies)
-        => policies == null || policies.All(policy => HasPolicy(user, policy));
+        => policies.All(policy => HasPolicy(user, policy));
 
     private bool HasPolicy(ClaimsPrincipal user, string policy)
     {

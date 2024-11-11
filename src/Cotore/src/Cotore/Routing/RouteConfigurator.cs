@@ -28,7 +28,7 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
         {
             if (string.IsNullOrWhiteSpace(loadBalancerUrl))
             {
-                throw new CotoreConfigurationException("Load balancer URL cannot be empty.");
+                throw new CotoreConfigurationException("Load balancer URL must be set when load balancing is enabled.");
             }
 
             loadBalancerUrl = loadBalancerUrl.EndsWith('/') ? loadBalancerUrl : $"{loadBalancerUrl}/";
@@ -46,15 +46,14 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
 
         if (service is null)
         {
-            throw new ArgumentException($"Service for: '{basePath}' was not defined.", nameof(service.Url));
+            throw new CotoreConfigurationException($"Service for: '{basePath}' was not defined.");
         }
 
         if (options.Value.UseLocalUrl)
         {
             if (string.IsNullOrWhiteSpace(service.LocalUrl))
             {
-                throw new ArgumentException($"Local URL for: '{basePath}' cannot be empty if useLocalUrl = true.",
-                    nameof(service.LocalUrl));
+                throw new CotoreConfigurationException($"Local URL for: '{basePath}' cannot be empty if useLocalUrl = true.");
             }
 
             return SetProtocol(route.Downstream.Replace(basePath, service.LocalUrl));
@@ -67,7 +66,7 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
 
         if (string.IsNullOrWhiteSpace(service.Url))
         {
-            throw new ArgumentException($"Service URL for: '{basePath}' cannot be empty.", nameof(service.Url));
+            throw new CotoreConfigurationException($"Service URL for: '{basePath}' cannot be empty.");
         }
 
         if (!loadBalancerEnabled)
@@ -83,32 +82,16 @@ internal sealed class RouteConfigurator(IOptions<CotoreOptions> options) : IRout
 
     private static string SetProtocol(string service) => service.StartsWith("http") ? service : $"http://{service}";
     
-    
-    private string GetUpstream(ModuleOptions module, RouteOptions route)
+    private static string GetUpstream(ModuleOptions module, RouteOptions route)
     {
-        var path = module.Path;
-        var upstream = string.IsNullOrWhiteSpace(route.Upstream) ? string.Empty : route.Upstream;
-        if (!string.IsNullOrWhiteSpace(path))
+        var path = module.Path.TrimEnd('/');
+        var upstream = route.Upstream switch
         {
-            var modulePath = path.EndsWith('/') ? path[..^1] : path;
-            if (!upstream.StartsWith('/'))
-            {
-                upstream = $"/{upstream}";
-            }
+            { Length: > 0 } => $"/{route.Upstream.TrimStart('/')}",
+            _ => string.Empty
+        };
 
-            upstream = $"{modulePath}{upstream}";
-        }
-
-        if (upstream.EndsWith('/'))
-        {
-            upstream = upstream[..^1];
-        }
-
-        if (route.MatchAll)
-        {
-            upstream = $"{upstream}/{{*url}}";
-        }
-
-        return upstream;
+        var combined = $"{path}{upstream}".TrimEnd('/');
+        return route.MatchAll ? $"{combined}/{{*url}}" : combined;
     }
 }

@@ -5,7 +5,6 @@ using Cotore.Options;
 using System.Diagnostics;
 using Cotore.Serialization;
 using Cotore.Requests;
-using System.Text.Json;
 
 namespace Cotore.Handlers;
 
@@ -23,7 +22,7 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
     private readonly IEnumerable<IHttpRequestHook> _httpRequestHooks = serviceProvider.GetServices<IHttpRequestHook>();
     private readonly IEnumerable<IHttpResponseHook> _httpResponseHooks = serviceProvider.GetServices<IHttpResponseHook>();
 
-    public async Task HandleAsync(HttpContext context, RouteConfig config, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(HttpContext context, RouteConfig config)
     {
         var activity = Activity.Current;
 
@@ -36,7 +35,7 @@ internal sealed class DownstreamHandler(IServiceProvider serviceProvider, IReque
 
         foreach (var hook in _requestHooks)
         {
-            await hook.InvokeAsync(context.Request, executionData, cancellationToken);
+            await hook.InvokeAsync(context.Request, executionData);
         }
 
         if (!executionData.IsPayloadValid)

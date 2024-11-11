@@ -1,3 +1,4 @@
+using Cotore.Configuration;
 using RouteOptions = Cotore.Configuration.RouteOptions;
 
 namespace Cotore;
@@ -5,6 +6,6 @@ namespace Cotore;
 public sealed class RouteConfig
 {
     public RouteOptions Route { get; set; } = null!;
-    public string? Downstream { get; set; }
     public string Upstream { get; set; } = null!;
+    public string? Downstream { get; set; }
 }

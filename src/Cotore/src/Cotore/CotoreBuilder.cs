@@ -5,8 +5,8 @@ namespace Cotore;
 public sealed class CotoreBuilder : ICotoreBuilder
 {
     private readonly ConcurrentDictionary<string, bool> _registry = new();
-    public IServiceCollection Services { get; init; } = null!;
-    public IConfiguration Configuration { get; init; } = null!;
+    public IServiceCollection Services { get; }
+    public IConfiguration Configuration { get; }
 
     private CotoreBuilder(IServiceCollection services, IConfiguration configuration)
     {

@@ -11,12 +11,12 @@ internal sealed class PayloadTransformer(IOptions<CotoreOptions> options, IPaylo
 
     public bool HasTransformations(Configuration.RouteOptions route)
     {
-        if (route.Bind.IsNotEmpty())
+        if (route.Bind.Count != 0)
         {
             return true;
         }
         
-        return route.Transform.IsNotEmpty() || _payloads.ContainsKey(GetPayloadKey(route));
+        return route.Transform.Count != 0 || _payloads.ContainsKey(GetPayloadKey(route));
     }
     
     public PayloadSchema Transform(string payload, Configuration.RouteOptions route, HttpRequest request, RouteData data)

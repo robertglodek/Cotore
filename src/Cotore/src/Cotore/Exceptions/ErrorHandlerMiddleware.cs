@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using System.Text.Json;
-
-namespace Cotore.Exceptions;
+﻿namespace Cotore.Exceptions;
 
 internal sealed class ErrorHandlerMiddleware(ILogger<ErrorHandlerMiddleware> logger) : IMiddleware
 {

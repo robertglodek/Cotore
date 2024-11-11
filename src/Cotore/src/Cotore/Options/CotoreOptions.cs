@@ -13,7 +13,7 @@ public sealed class CotoreOptions
     public bool? PassQueryString { get; init; }
     public AuthOptions? Auth { get; init; }
     public string? ModulesPath { get; init; }
-    public string? PayloadsFolder { get; set; }
+    public string PayloadsFolder { get; init; } = "payloads";
     public Dictionary<string, ModuleOptions> Modules { get; init; } = [];
     public HttpOptions Http { get; init; } = new();
     public LoadBalancerOptions? LoadBalancer { get; init; }
