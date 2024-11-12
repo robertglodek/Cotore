@@ -1,9 +1,10 @@
 import styles from "./App.module.css";
 import { Component } from 'react';
-import Header from '../shared/layouts/Header';
-import SideNav from '../shared/layouts/SideNav';
-import Footer from '../shared/layouts/Footer';
-import Page from '../shared/layouts/Page';
+
+import Header from "./modules/core/layouts/Header/Header";
+import SideNav from "./modules/core/layouts/SideNav/SideNav";
+import Footer from "./modules/core/layouts/Footer/Footer";
+import Page from "./modules/core/layouts/Page/Page";
 import { BrowserRouter as Router } from "react-router-dom";
 
 class App extends Component {
