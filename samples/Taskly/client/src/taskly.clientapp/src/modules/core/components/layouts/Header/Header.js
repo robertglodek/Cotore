@@ -1,12 +1,16 @@
-import styles from './Header.module.css'
-import MainNav from '../MainNav/MainNav';
+import styles from "./Header.module.scss";
+import MainNav from "../MainNav/MainNav";
+import Logo from "../../Logo/Logo";
 
 const Header = () => {
   return (
     <div className={styles.headerContent}>
-          <nav className={styles.mainNav}>
-            <MainNav/>
-          </nav>
+      <div className={styles.headerLogoWrapper}>
+        <Logo />
+      </div>
+      <div className={styles.headerMainNavWrapper}>
+        <MainNav />
+      </div>
     </div>
   );
 };

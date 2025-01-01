@@ -1,11 +1,11 @@
-import styles from "./Page.module.css";
+import styles from "./Page.module.scss";
 import { Route, Routes } from "react-router-dom";
 
 const Page = () => {
   return (
     <div className={styles.pageContent}>
       <Routes>
-        <Route/>
+        <Route />
       </Routes>
     </div>
   );

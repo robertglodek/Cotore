@@ -1,5 +1,5 @@
-import styles from "./App.module.css";
-import { Component } from 'react';
+import styles from "./App.module.scss";
+import { Component } from "react";
 
 import Header from "./modules/core/components/layouts/Header/Header";
 import SideNav from "./modules/core/components/layouts/SideNav/SideNav";
@@ -10,24 +10,24 @@ import { BrowserRouter as Router } from "react-router-dom";
 class App extends Component {
   render() {
     return (
-        <Router>
-          <div className={styles.app}>
-            <header className={styles.header}>
-              <Header />
-            </header>
-            <main className={styles.main}>
-              <aside className={styles.sideNav}>
-                <SideNav />
-              </aside>
-              <section className={styles.page}>
-                <Page />
-              </section>
-            </main>
-            <footer className={styles.footer}>
-              <Footer />
-            </footer>
+      <Router>
+        <div className={styles.app}>
+          <header className={styles.header}>
+            <Header />
+          </header>
+          <main className={styles.main}>
+            <aside className={styles.sideNav}>
+              <SideNav />
+            </aside>
+            <section className={styles.page}>
+              <Page />
+            </section>
+          </main>
+          <footer className={styles.footer}>
+            <Footer />
+          </footer>
         </div>
-        </Router>
+      </Router>
     );
   }
 }
