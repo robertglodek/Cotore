@@ -1,0 +1,12 @@
+.mainNavContent {
+}
+
+.mainNavContent ul {
+  display: flex;
+  flex-direction: row;
+}
+
+.mainNavContent ul a {
+  color: white;
+  text-transform: uppercase;
+}
